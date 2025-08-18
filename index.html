@@ -327,7 +327,7 @@
     <div class="container">
         <div class="header">
             <!-- Logo de la Universidad -->
-            <img class="university-logo" src="https://galegotanz-cell.github.io/mesas-examen/logo.png" alt="Universidad Nacional de la Patagonia San Juan Bosco">
+            <img class="university-logo" src="https://fcnycs.github.io/mesas-examen/logo.png" alt="Universidad Nacional de la Patagonia San Juan Bosco">
             
             <div class="header-content">
                 <h1>FACULTAD DE CIENCIAS NATURALES Y CIENCIAS DE LA SALUD</h1>
@@ -502,19 +502,29 @@
                 console.log('Loaded data rows:', allData.length); // Debug
                 console.log('Sample rows:', allData.slice(0, 10)); // Debug
                 
-                // Extract title information
-                if (allData.length >= 5) {
-                    titleData = {
-                        titleA1: allData[0] ? allData[0][0] : '',
-                        titleBCD1: allData[0] ? (allData[0][1] + ' ' + (allData[0][2] || '') + ' ' + (allData[0][3] || '')).trim() : '',
-                        infoA2: allData[1] ? allData[1][0] : '',
-                        infoBCD2: allData[1] ? (allData[1][1] + ' ' + (allData[1][2] || '') + ' ' + (allData[1][3] || '')).trim() : '',
-                        titleABCD3: allData[2] ? (allData[2][0] + ' ' + (allData[2][1] || '') + ' ' + (allData[2][2] || '') + ' ' + (allData[2][3] || '')).trim() : '',
-                        infoABCD4: allData[3] ? (allData[3][0] + ' ' + (allData[3][1] || '') + ' ' + (allData[3][2] || '') + ' ' + (allData[3][3] || '')).trim() : '',
-                        headers: allData[4] || ['Asignaturas', 'Fecha', 'Hora', 'Aula'],
-                        tableData: allData.slice(5) // From row 6 onwards (index 5)
-                    };
-                }
+// Extract title information
+if (allData.length >= 5) {
+    // Check if row 4 (index 3) is empty and provide default text
+    let row4Content = '';
+    if (allData[3] && allData[3].some(cell => cell && cell.trim() !== '')) {
+        // Row 4 has content
+        row4Content = (allData[3][0] + ' ' + (allData[3][1] || '') + ' ' + (allData[3][2] || '') + ' ' + (allData[3][3] || '')).trim();
+    } else {
+        // Row 4 is empty, use default text
+        row4Content = 'No hay';
+    }
+    
+    titleData = {
+        titleA1: allData[0] ? allData[0][0] : '',
+        titleBCD1: allData[0] ? (allData[0][1] + ' ' + (allData[0][2] || '') + ' ' + (allData[0][3] || '')).trim() : '',
+        infoA2: allData[1] ? allData[1][0] : '',
+        infoBCD2: allData[1] ? (allData[1][1] + ' ' + (allData[1][2] || '') + ' ' + (allData[1][3] || '')).trim() : '',
+        titleABCD3: allData[2] ? (allData[2][0] + ' ' + (allData[2][1] || '') + ' ' + (allData[2][2] || '') + ' ' + (allData[2][3] || '')).trim() : '',
+        infoABCD4: row4Content,
+        headers: allData[4] || ['Asignaturas', 'Fecha', 'Hora', 'Aula'],
+        tableData: allData.slice(5) // From row 6 onwards (index 5)
+    };
+}
                 
                 filteredData = titleData.tableData || [];
 
