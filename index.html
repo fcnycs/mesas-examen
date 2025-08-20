@@ -554,7 +554,7 @@ row4Content = data[3][0]=='' ? 'Ninguno' :  data[3][0];
                 // Process title and info for columns BCD
                 const titleBCDContent = titleData.titleBCD1 ? 
                     `<div class="title-text">${titleData.titleBCD1}</div>
-                     <div class="title-info">${titleData.infoBCD2 || ''}</div>` : '';
+                     <div class="title-info">${(titleData.infoBCD2 || '').toUpperCase()}</div>` : '';
                 
                 // Check if general info is empty and provide default message
                 let generalInfoContent = '';
