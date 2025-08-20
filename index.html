@@ -505,14 +505,7 @@
 // Extract title information
 if (allData.length >= 5) {
     // Check if row 4 (index 3) is empty and provide default text
-    let row4Content = '';
-    if (allData[3] && allData[3].some(cell => cell && cell.trim() !== '')) {
-        // Row 4 has content
-        row4Content = (allData[3][0] + ' ' + (allData[3][1] || '') + ' ' + (allData[3][2] || '') + ' ' + (allData[3][3] || '')).trim();
-    } else {
-        // Row 4 is empty, use default text
-        row4Content = 'Ninguno';
-    }
+row4Content = data[3][0]=='' ? 'Ninguno' :  data[3][0];
     
     titleData = {
         titleA1: allData[0] ? allData[0][0] : '',
