@@ -708,8 +708,8 @@ row4Content = data[3][0]=='' ? 'NINGUNO' :  data[3][0];
         // Load data when page loads
         window.addEventListener('load', loadData);
 
-        // Auto-refresh every 5 minutes to get updates
-        setInterval(loadData, 5 * 60 * 1000);
+        // Auto-refresh every 2 minutes to get updates
+        setInterval(loadData, 2 * 60 * 1000);
 
         // Add a test button to manually check dates (remove in production)
         window.testDateParsing = function(dateStr) {
