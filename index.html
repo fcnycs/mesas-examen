@@ -517,8 +517,8 @@
             '25/12/2024'  // Navidad
         ];
 
-        // URL de tu Google Sheet incluyendo las columnas F y G con las fechas límite
-        const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQVNeNi7qQE2PotMhuWitzIh9y8M0oFLPC3ng7blHdDLScjzpx9WQPmXan6tL-d11hfQqTYW0SHamnp/pub?gid=0&single=true&output=csv&range=A:G';
+        // URL de tu Google Sheet (formato CSV - más confiable)
+        const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQVNeNi7qQE2PotMhuWitzIh9y8M0oFLPC3ng7blHdDLScjzpx9WQPmXan6tL-d11hfQqTYW0SHamnp/pub?gid=0&single=true&output=csv&range=A:D';
 
         function parseDate(dateString) {
             if (!dateString || dateString.trim() === '') return null;
@@ -627,7 +627,7 @@
             return currentDate;
         }
 
-        function showTooltip(event, examDate, regularDate, libreDate) {
+        function showTooltip(event, examDate) {
             const tooltip = document.getElementById('tooltip');
             
             if (!examDate || examDate.trim() === '') {
@@ -635,37 +635,39 @@
                 return;
             }
 
+            const regularDate = calculateWorkingDays(examDate, 3);
+            const libreDate = calculateWorkingDays(examDate, 6);
+
             let content = `<div class="tooltip-title">📅 Fechas límite de inscripción</div>`;
             
-            // Usar las fechas que vienen del Google Sheet
-            if (regularDate && regularDate.trim() !== '') {
+            if (regularDate) {
                 content += `
                     <div class="tooltip-item">
                         <span class="tooltip-label">📝 Examen Regular:</span>
-                        <span class="tooltip-date regular">${regularDate}</span>
+                        <span class="tooltip-date regular">${formatDate(regularDate)}</span>
                     </div>
                 `;
             } else {
                 content += `
                     <div class="tooltip-item">
                         <span class="tooltip-label">📝 Examen Regular:</span>
-                        <span class="tooltip-date">No calculado</span>
+                        <span class="tooltip-date">Error en fecha</span>
                     </div>
                 `;
             }
 
-            if (libreDate && libreDate.trim() !== '') {
+            if (libreDate) {
                 content += `
                     <div class="tooltip-item">
                         <span class="tooltip-label">📋 Examen Libre:</span>
-                        <span class="tooltip-date libre">${libreDate}</span>
+                        <span class="tooltip-date libre">${formatDate(libreDate)}</span>
                     </div>
                 `;
             } else {
                 content += `
                     <div class="tooltip-item">
                         <span class="tooltip-label">📋 Examen Libre:</span>
-                        <span class="tooltip-date">No calculado</span>
+                        <span class="tooltip-date">Error en fecha</span>
                     </div>
                 `;
             }
@@ -883,12 +885,7 @@
                     // Add special handling for date column (assuming it's column index 1)
                     if (i === 1 && row[i] && row[i].trim() !== '') {
                         td.classList.add('date-cell');
-                        
-                        // Obtener las fechas límite de las columnas F (índice 5) y G (índice 6)
-                        const regularDate = row[5] || ''; // Columna F
-                        const libreDate = row[6] || '';   // Columna G
-                        
-                        td.addEventListener('mouseenter', (e) => showTooltip(e, row[i], regularDate, libreDate));
+                        td.addEventListener('mouseenter', (e) => showTooltip(e, row[i]));
                         td.addEventListener('mouseleave', hideTooltip);
                         
                         // For mobile devices - tap to show/hide tooltip
@@ -898,7 +895,7 @@
                             if (tooltip.classList.contains('show')) {
                                 hideTooltip();
                             } else {
-                                showTooltip(e, row[i], regularDate, libreDate);
+                                showTooltip(e, row[i]);
                             }
                         });
                     }
@@ -934,8 +931,12 @@
             }
         });
 
-        // Hide tooltip when scrolling
-        window.addEventListener('scroll', hideTooltip);
+        // Hide tooltip when scrolling (solo para móviles ya que en desktop se reposiciona)
+        window.addEventListener('scroll', () => {
+            if (isTouchDevice()) {
+                hideTooltip();
+            }
+        });
         
         // Event listeners
         document.getElementById('searchInput').addEventListener('input', filterData);
