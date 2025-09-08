@@ -81,10 +81,15 @@
             padding: 20px 30px;
             background: #f8f9fa;
             border-bottom: 1px solid #e9ecef;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
         }
 
         .search-box {
-            width: 100%;
+            flex: 1;
+            min-width: 250px;
             padding: 12px 20px;
             font-size: 16px;
             border: 2px solid #ddd;
@@ -95,6 +100,32 @@
 
         .search-box:focus {
             border-color: #667eea;
+        }
+
+        .filter-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+            background: rgba(255,255,255,0.8);
+            padding: 10px 15px;
+            border-radius: 20px;
+            border: 2px solid #ddd;
+        }
+
+        .filter-checkbox {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #667eea;
+        }
+
+        .filter-label {
+            font-size: 14px;
+            color: #495057;
+            cursor: pointer;
+            user-select: none;
+            font-weight: 600;
         }
 
         .loading {
@@ -268,11 +299,11 @@
             font-size: 13px;
             line-height: 1.4;
             min-width: 280px;
-            z-index: 1000;
+            z-index: 9999;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             opacity: 0;
             visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
             pointer-events: none;
         }
 
@@ -475,6 +506,10 @@
         
         <div class="search-container">
             <input type="text" id="searchInput" class="search-box" placeholder="🔍 Buscar por materia, fecha...">
+            <div class="filter-container">
+                <input type="checkbox" id="hidePastExams" class="filter-checkbox">
+                <label for="hidePastExams" class="filter-label">Ocultar mesas finalizadas</label>
+            </div>
         </div>
 
         <div id="loadingMessage" class="loading">
@@ -509,27 +544,11 @@
         let allData = [];
         let filteredData = [];
         let titleData = {};
+        let hidePastExams = false;
+        let currentTooltipTarget = null;
 
-        // Feriados argentinos 2024 - puedes actualizarlo cada año
-        const holidays2024 = [
-            '01/01/2024', // Año Nuevo
-            '12/02/2024', // Carnaval
-            '13/02/2024', // Carnaval
-            '24/03/2024', // Día de la Memoria
-            '02/04/2024', // Malvinas
-            '01/05/2024', // Día del Trabajador
-            '25/05/2024', // Revolución de Mayo
-            '20/06/2024', // Día de la Bandera
-            '09/07/2024', // Independencia
-            '17/08/2024', // San Martín
-            '12/10/2024', // Día de la Raza
-            '18/11/2024', // Soberanía Nacional
-            '08/12/2024', // Inmaculada Concepción
-            '25/12/2024'  // Navidad
-        ];
-
-        // URL de tu Google Sheet (formato CSV - más confiable)
-        const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQVNeNi7qQE2PotMhuWitzIh9y8M0oFLPC3ng7blHdDLScjzpx9WQPmXan6tL-d11hfQqTYW0SHamnp/pub?gid=0&single=true&output=csv&range=A:D';
+        // URL de tu Google Sheet incluyendo las columnas F y G con las fechas límite
+        const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQVNeNi7qQE2PotMhuWitzIh9y8M0oFLPC3ng7blHdDLScjzpx9WQPmXan6tL-d11hfQqTYW0SHamnp/pub?gid=0&single=true&output=csv&range=A:G';
 
         function parseDate(dateString) {
             if (!dateString || dateString.trim() === '') return null;
@@ -602,43 +621,7 @@
             return date < today;
         }
 
-        function isWeekend(date) {
-            const day = date.getDay();
-            return day === 0 || day === 6; // Sunday = 0, Saturday = 6
-        }
-
-        function isHoliday(date) {
-            const dateStr = formatDate(date);
-            return holidays2024.includes(dateStr);
-        }
-
-        function formatDate(date) {
-            const day = String(date.getDate()).padStart(2, '0');
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const year = date.getFullYear();
-            return `${day}/${month}/${year}`;
-        }
-
-        function calculateWorkingDays(examDate, daysToSubtract) {
-            const date = parseDate(examDate);
-            if (!date) return null;
-
-            let currentDate = new Date(date);
-            let workingDaysCount = 0;
-
-            // Go backwards until we find the required number of working days
-            while (workingDaysCount < daysToSubtract) {
-                currentDate.setDate(currentDate.getDate() - 1);
-                
-                if (!isWeekend(currentDate) && !isHoliday(currentDate)) {
-                    workingDaysCount++;
-                }
-            }
-
-            return currentDate;
-        }
-
-        function showTooltip(event, examDate) {
+        function showTooltip(event, examDate, regularDate, libreDate, isMobile = false) {
             const tooltip = document.getElementById('tooltip');
             
             if (!examDate || examDate.trim() === '') {
@@ -646,65 +629,102 @@
                 return;
             }
 
-            const regularDate = calculateWorkingDays(examDate, 3);
-            const libreDate = calculateWorkingDays(examDate, 6);
-
             let content = `<div class="tooltip-title">📅 Fechas límite de inscripción</div>`;
             
-            if (regularDate) {
+            // Usar las fechas que vienen del Google Sheet
+            if (regularDate && regularDate.trim() !== '') {
                 content += `
                     <div class="tooltip-item">
                         <span class="tooltip-label">📝 Examen Regular:</span>
-                        <span class="tooltip-date regular">${formatDate(regularDate)}</span>
+                        <span class="tooltip-date regular">${regularDate}</span>
                     </div>
                 `;
             } else {
                 content += `
                     <div class="tooltip-item">
                         <span class="tooltip-label">📝 Examen Regular:</span>
-                        <span class="tooltip-date">Error en fecha</span>
+                        <span class="tooltip-date">No calculado</span>
                     </div>
                 `;
             }
 
-            if (libreDate) {
+            if (libreDate && libreDate.trim() !== '') {
                 content += `
                     <div class="tooltip-item">
                         <span class="tooltip-label">📋 Examen Libre:</span>
-                        <span class="tooltip-date libre">${formatDate(libreDate)}</span>
+                        <span class="tooltip-date libre">${libreDate}</span>
                     </div>
                 `;
             } else {
                 content += `
                     <div class="tooltip-item">
                         <span class="tooltip-label">📋 Examen Libre:</span>
-                        <span class="tooltip-date">Error en fecha</span>
+                        <span class="tooltip-date">No calculado</span>
                     </div>
                 `;
             }
 
             tooltip.innerHTML = content;
 
-            // Position the tooltip
-            const rect = event.currentTarget.getBoundingClientRect();
-            const tooltipRect = tooltip.getBoundingClientRect();
-            
-            let left = rect.left + (rect.width / 2) - (280 / 2); // Center horizontally
-            let top = rect.top - tooltipRect.height - 12; // Above the element
+            // Posicionar el tooltip
+            setTimeout(() => {
+                let left, top;
+                
+                if (isMobile) {
+                    // Para móviles: centrar sobre la celda de fecha
+                    const rect = event.currentTarget.getBoundingClientRect();
+                    left = rect.left + (rect.width / 2) - 140; // Centrar tooltip (280px / 2)
+                    top = rect.top + window.pageYOffset - 50; // 50px arriba de la celda
+                    
+                    // Ajustar si sale de pantalla
+                    if (left < 10) left = 10;
+                    if (left + 280 > window.innerWidth - 10) left = window.innerWidth - 290;
+                    if (top < window.pageYOffset + 10) top = rect.bottom + window.pageYOffset + 10;
+                } else {
+                    // Para desktop: cerca del cursor del mouse
+                    left = event.clientX - 140; // Centrar horizontalmente en el cursor
+                    top = event.clientY + window.pageYOffset - 50; // 50px arriba del cursor
+                    
+                    // Ajustar si sale de pantalla
+                    if (left < 10) left = 10;
+                    if (left + 280 > window.innerWidth - 10) left = window.innerWidth - 290;
+                    if (top < window.pageYOffset + 10) top = event.clientY + window.pageYOffset + 20;
+                }
 
-            // Adjust if tooltip goes out of screen
-            if (left < 10) left = 10;
-            if (left + 280 > window.innerWidth - 10) left = window.innerWidth - 290;
-            if (top < 10) top = rect.bottom + 12; // Below if not enough space above
+                tooltip.style.left = left + 'px';
+                tooltip.style.top = top + 'px';
+                tooltip.classList.add('show');
+            }, 10);
+        }
 
-            tooltip.style.left = left + 'px';
-            tooltip.style.top = top + 'px';
-            tooltip.classList.add('show');
+        function updateTooltipPosition(event) {
+            const tooltip = document.getElementById('tooltip');
+            if (tooltip.classList.contains('show') && currentTooltipTarget === event.currentTarget) {
+                // Solo actualizar posición en desktop cuando se mueva el mouse
+                let left = event.clientX - 140;
+                let top = event.clientY + window.pageYOffset - 50;
+                
+                // Ajustar si sale de pantalla
+                if (left < 10) left = 10;
+                if (left + 280 > window.innerWidth - 10) left = window.innerWidth - 290;
+                if (top < window.pageYOffset + 10) top = event.clientY + window.pageYOffset + 20;
+
+                tooltip.style.left = left + 'px';
+                tooltip.style.top = top + 'px';
+            }
         }
 
         function hideTooltip() {
             const tooltip = document.getElementById('tooltip');
             tooltip.classList.remove('show');
+            currentTooltipTarget = null;
+        }
+
+        // Detectar si es dispositivo táctil
+        function isTouchDevice() {
+            return (('ontouchstart' in window) ||
+                    (navigator.maxTouchPoints > 0) ||
+                    (navigator.msMaxTouchPoints > 0));
         }
 
         async function loadData() {
@@ -754,8 +774,8 @@
                 // Extract title information
                 if (allData.length >= 5) {
                     // Check if row 4 (index 3) is empty and provide default text
-                    row4Content = data[3][0]=='' ? 'NINGUNO' :  data[3][0];
-                    allData.splice(3, 0, "Hola"); 
+                    row4Content = allData[3] && allData[3][0] ? allData[3][0] : 'NINGUNO';
+                    
                     titleData = {
                         titleA1: allData[0] ? allData[0][0] : '',
                         titleBCD1: allData[0] ? (allData[0][1] + ' ' + (allData[0][2] || '') + ' ' + (allData[0][3] || '')).trim() : '',
@@ -896,19 +916,34 @@
                     // Add special handling for date column (assuming it's column index 1)
                     if (i === 1 && row[i] && row[i].trim() !== '') {
                         td.classList.add('date-cell');
-                        td.addEventListener('mouseenter', (e) => showTooltip(e, row[i]));
-                        td.addEventListener('mouseleave', hideTooltip);
                         
-                        // For mobile devices - tap to show/hide tooltip
-                        td.addEventListener('click', (e) => {
-                            e.preventDefault();
-                            const tooltip = document.getElementById('tooltip');
-                            if (tooltip.classList.contains('show')) {
-                                hideTooltip();
-                            } else {
-                                showTooltip(e, row[i]);
-                            }
-                        });
+                        // Obtener las fechas límite de las columnas F (índice 5) y G (índice 6)
+                        const regularDate = row[5] || ''; // Columna F
+                        const libreDate = row[6] || '';   // Columna G
+                        
+                        if (isTouchDevice()) {
+                            // Para dispositivos táctiles
+                            td.addEventListener('click', (e) => {
+                                e.preventDefault();
+                                const tooltip = document.getElementById('tooltip');
+                                if (tooltip.classList.contains('show') && currentTooltipTarget === td) {
+                                    hideTooltip();
+                                } else {
+                                    currentTooltipTarget = td;
+                                    showTooltip(e, row[i], regularDate, libreDate, true);
+                                }
+                            });
+                        } else {
+                            // Para desktop/mouse
+                            td.addEventListener('mouseenter', (e) => {
+                                currentTooltipTarget = td;
+                                showTooltip(e, row[i], regularDate, libreDate, false);
+                            });
+                            
+                            td.addEventListener('mousemove', updateTooltipPosition);
+                            
+                            td.addEventListener('mouseleave', hideTooltip);
+                        }
                     }
                     
                     tr.appendChild(td);
@@ -920,17 +955,28 @@
 
         function filterData() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+            hidePastExams = document.getElementById('hidePastExams').checked;
             
-            if (searchTerm === '') {
-                filteredData = titleData.tableData || [];
-            } else {
-                filteredData = (titleData.tableData || []).filter(row => 
+            let data = titleData.tableData || [];
+            
+            // Filtrar por término de búsqueda
+            if (searchTerm !== '') {
+                data = data.filter(row => 
                     row.some(cell => 
                         cell && cell.toString().toLowerCase().includes(searchTerm)
                     )
                 );
             }
             
+            // Filtrar mesas finalizadas si está marcado el checkbox
+            if (hidePastExams) {
+                data = data.filter(row => {
+                    const dateValue = row[1] ? row[1].toString().trim() : '';
+                    return !isDatePast(dateValue);
+                });
+            }
+            
+            filteredData = data;
             displayData();
         }
 
@@ -951,6 +997,7 @@
         
         // Event listeners
         document.getElementById('searchInput').addEventListener('input', filterData);
+        document.getElementById('hidePastExams').addEventListener('change', filterData);
 
         // Load data when page loads
         window.addEventListener('load', loadData);
@@ -964,12 +1011,6 @@
             const parsed = parseDate(dateStr);
             console.log('Parsed:', parsed);
             console.log('Is past:', isDatePast(dateStr));
-        };
-
-        window.testWorkingDays = function(examDate, days) {
-            console.log(`Testing ${days} working days before ${examDate}`);
-            const result = calculateWorkingDays(examDate, days);
-            console.log('Result:', result ? formatDate(result) : 'null');
         };
     </script>
 </body>
