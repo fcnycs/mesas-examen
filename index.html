@@ -774,8 +774,8 @@
                 // Extract title information
                 if (allData.length >= 5) {
                     // Check if row 4 (index 3) is empty and provide default text
-                    row4Content = allData[3] && allData[3][0] ? allData[3][0] : 'NINGUNO';
                     allData.splice(3, 0, "Hola");
+                    row4Content = allData[3] && allData[3][0] ? allData[3][0] : 'NINGUNO';
                     
                     titleData = {
                         titleA1: allData[0] ? allData[0][0] : '',
@@ -919,8 +919,8 @@
                         td.classList.add('date-cell');
                         
                         // Obtener las fechas límite de las columnas F (índice 5) y G (índice 6)
-                        const regularDate = row[5] || ''; // Columna F
-                        const libreDate = row[6] || '';   // Columna G
+                        const regularDate = row[6] || ''; // Columna F
+                        const libreDate = row[7] || '';   // Columna G
                         
                         if (isTouchDevice()) {
                             // Para dispositivos táctiles
