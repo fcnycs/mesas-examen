@@ -775,7 +775,7 @@
                 if (allData.length >= 5) {
                     // Check if row 4 (index 3) is empty and provide default text
                     allData.splice(3, 0, "Hola");
-                    row4Content = allData[3] && allData[3][0] ? allData[3][0] : 'NINGUNO';
+                    row4Content = allData[3] && allData[3][0] ? allData[3][0] : "NINGUNO";
                     
                     titleData = {
                         titleA1: allData[0] ? allData[0][0] : '',
@@ -918,9 +918,9 @@
                     if (i === 1 && row[i] && row[i].trim() !== '') {
                         td.classList.add('date-cell');
                         
-                        // Obtener las fechas límite de las columnas F (índice 5) y G (índice 6)
-                        const regularDate = row[6] || ''; // Columna F
-                        const libreDate = row[7] || '';   // Columna G
+                        // Obtener las fechas límite de las columnas G (índice 6) y H (índice 7)
+                        const regularDate = row[6] || ''; // Columna G
+                        const libreDate = row[7] || '';   // Columna H
                         
                         if (isTouchDevice()) {
                             // Para dispositivos táctiles
