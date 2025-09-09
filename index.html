@@ -924,16 +924,17 @@
                         
                         if (isTouchDevice()) {
                             // Para dispositivos táctiles
-                            td.addEventListener('click', (e) => {
-                                e.preventDefault();
-                                const tooltip = document.getElementById('tooltip');
-                                if (tooltip.classList.contains('show') && currentTooltipTarget === td) {
-                                    hideTooltip();
-                                } else {
-                                    currentTooltipTarget = td;
-                                    showTooltip(e, row[i], regularDate, libreDate, true);
-                                }
-                            });
+                            td.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const tooltip = document.getElementById('tooltip');
+        if (tooltip && tooltip.classList.contains('show') && currentTooltipTarget === td) {
+            hideTooltip();
+        } else {
+            currentTooltipTarget = td;
+            showTooltip(e, row[i], regularDate, libreDate, true);
+        }
+    });
                         } else {
                             // Para desktop/mouse
                             td.addEventListener('mouseenter', (e) => {
