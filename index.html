@@ -547,8 +547,8 @@
         let hidePastExams = false;
         let currentTooltipTarget = null;
 
-        // URL de tu Google Sheet incluyendo las columnas F y G con las fechas límite
-        const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQVNeNi7qQE2PotMhuWitzIh9y8M0oFLPC3ng7blHdDLScjzpx9WQPmXan6tL-d11hfQqTYW0SHamnp/pub?gid=0&single=true&output=csv&range=A:D';
+        // URL de tu Google Sheet incluyendo las columnas G y H con las fechas límite
+        const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQVNeNi7qQE2PotMhuWitzIh9y8M0oFLPC3ng7blHdDLScjzpx9WQPmXan6tL-d11hfQqTYW0SHamnp/pub?gid=0&single=true&output=csv&range=A:H';
 
         function parseDate(dateString) {
             if (!dateString || dateString.trim() === '') return null;
@@ -764,17 +764,18 @@
                     
                     return columns;
                 });
-                
-                // Extract title information
-                if (allData.length >= 5) {
-                    // Check if row 4 (index 3) is empty and provide default text
-                    row4Content = allData[3] && allData[3][0] ? allData[3][0] : 'NINGUNO';
-                    
+
                 // Filter out completely empty rows
                 allData = data.filter(row => row.some(cell => cell && cell.trim() !== ''));
                 
                 console.log('Loaded data rows:', allData.length);
                 console.log('Sample rows:', allData.slice(0, 10));
+                
+                // Extract title information
+                if (allData.length >= 5) {
+                    // Check if row 4 (index 3) is empty and provide default text
+                    row4Content = allData[3] && allData[3][0] ? allData[3][0] : "NINGUNO";
+                    allData.splice(3, 0, "Hola");
                     
                     titleData = {
                         titleA1: allData[0] ? allData[0][0] : '',
