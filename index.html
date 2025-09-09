@@ -775,7 +775,6 @@
                 if (allData.length >= 5) {
                     // Check if row 4 (index 3) is empty and provide default text
                     row4Content = allData[3] && allData[3][0] ? allData[3][0] : "NINGUNO";
-                    allData.splice(3, 0, "Hola");
                     
                     titleData = {
                         titleA1: allData[0] ? allData[0][0] : '',
@@ -784,7 +783,7 @@
                         infoBCD2: allData[1] ? (allData[1][1] + ' ' + (allData[1][2] || '') + ' ' + (allData[1][3] || '')).trim() : '',
                         titleABCD3: allData[2] ? (allData[2][0] + ' ' + (allData[2][1] || '') + ' ' + (allData[2][2] || '') + ' ' + (allData[2][3] || '')).trim() : '',
                         infoABCD4: row4Content.toUpperCase(),
-                        headers: allData[4] || ['Asignaturas', 'Fecha', 'Hora', 'Aula'],
+                        headers: ['ASIGNATURAS', 'FECHA', 'HORA', 'AULA'],
                         tableData: allData.slice(5) // From row 6 onwards (index 5)
                     };
                 }
