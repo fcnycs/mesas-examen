@@ -896,10 +896,19 @@
                 const isPast = isDatePast(dateValue);
                 console.log(`Row ${index + 6}: Is past: ${isPast}`);
                 
-                if (isPast) {
-                    tr.classList.add('past-date');
-                    console.log(`Applied past-date class to row ${index + 6}`);
-                } else {
+                // Verificar si la fila está anulada (columnas fecha, hora o aula)
+const fechaValue = (row[1] || '').toString().toUpperCase();
+const horaValue = (row[2] || '').toString().toUpperCase();
+const aulaValue = (row[3] || '').toString().toUpperCase();
+const isAnulada = fechaValue.includes('ANULADA') || horaValue.includes('ANULADA') || aulaValue.includes('ANULADA');
+
+if (isAnulada) {
+    tr.classList.add('cancelled-row');
+    console.log(`Applied cancelled-row class to row ${index + 6}`);
+} else if (isPast) {
+    tr.classList.add('past-date');
+    console.log(`Applied past-date class to row ${index + 6}`);
+} else {
                     // Apply alternating colors only to active rows
                     if (activeRowIndex % 2 === 0) {
                         tr.classList.add('active-even');
