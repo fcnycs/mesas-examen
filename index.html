@@ -228,6 +228,15 @@
             background-color: #a3d9bb;
         }
 
+        .exam-table tr.cancelled-row {
+    background-color: #fce4e4 !important;
+    color: #999;
+}
+
+.exam-table tr.cancelled-row:hover {
+    background-color: #f5d0d0 !important;
+}
+
         .title-section {
             padding: 20px 30px;
             border-bottom: 1px solid #e9ecef;
@@ -905,6 +914,14 @@ const isAnulada = fechaValue.includes('ANULADA') || horaValue.includes('ANULADA'
 if (isAnulada) {
     tr.classList.add('cancelled-row');
     console.log(`Applied cancelled-row class to row ${index + 6}`);
+} // Verificar si la fila está anulada
+const fechaValue = (row[1] || '').toString().toUpperCase();
+const horaValue = (row[2] || '').toString().toUpperCase();
+const aulaValue = (row[3] || '').toString().toUpperCase();
+const isAnulada = fechaValue.includes('ANULADA') || horaValue.includes('ANULADA') || aulaValue.includes('ANULADA');
+
+if (isAnulada) {
+    tr.classList.add('cancelled-row');
 } else if (isPast) {
     tr.classList.add('past-date');
     console.log(`Applied past-date class to row ${index + 6}`);
