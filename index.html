@@ -229,13 +229,13 @@
         }
 
         .exam-table tr.cancelled-row {
-    background-color: #fce4e4 !important;
-    color: #999;
-}
+            background-color: #fce4e4 !important;
+            color: #999;
+        }
 
-.exam-table tr.cancelled-row:hover {
-    background-color: #f5d0d0 !important;
-}
+        .exam-table tr.cancelled-row:hover {
+            background-color: #f5d0d0 !important;
+        }
 
         .title-section {
             padding: 20px 30px;
@@ -904,28 +904,19 @@
                 
                 const isPast = isDatePast(dateValue);
                 console.log(`Row ${index + 6}: Is past: ${isPast}`);
-                
-                // Verificar si la fila está anulada (columnas fecha, hora o aula)
-const fechaValue = (row[1] || '').toString().toUpperCase();
-const horaValue = (row[2] || '').toString().toUpperCase();
-const aulaValue = (row[3] || '').toString().toUpperCase();
-const isAnulada = fechaValue.includes('ANULADA') || horaValue.includes('ANULADA') || aulaValue.includes('ANULADA');
 
-if (isAnulada) {
-    tr.classList.add('cancelled-row');
-    console.log(`Applied cancelled-row class to row ${index + 6}`);
-// Verificar si la fila está anulada
-const fechaValue = (row[1] || '').toString().toUpperCase();
-const horaValue = (row[2] || '').toString().toUpperCase();
-const aulaValue = (row[3] || '').toString().toUpperCase();
-const isAnulada = fechaValue.includes('ANULADA') || horaValue.includes('ANULADA') || aulaValue.includes('ANULADA');
+                // Verificar si la fila está anulada
+                const fechaValue = (row[1] || '').toString().toUpperCase();
+                const horaValue = (row[2] || '').toString().toUpperCase();
+                const aulaValue = (row[3] || '').toString().toUpperCase();
+                const isAnulada = fechaValue.includes('ANULADA') || horaValue.includes('ANULADA') || aulaValue.includes('ANULADA');
 
-if (isAnulada) {
-    tr.classList.add('cancelled-row');
-} else if (isPast) {
-    tr.classList.add('past-date');
-    console.log(`Applied past-date class to row ${index + 6}`);
-} else {
+                if (isAnulada) {
+                    tr.classList.add('cancelled-row');
+                } else if (isPast) {
+                    tr.classList.add('past-date');
+                    console.log(`Applied past-date class to row ${index + 6}`);
+                } else {
                     // Apply alternating colors only to active rows
                     if (activeRowIndex % 2 === 0) {
                         tr.classList.add('active-even');
@@ -951,16 +942,16 @@ if (isAnulada) {
                         if (isTouchDevice()) {
                             // Para dispositivos táctiles
                             td.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        const tooltip = document.getElementById('tooltip');
-        if (tooltip && tooltip.classList.contains('show') && currentTooltipTarget === td) {
-            hideTooltip();
-        } else {
-            currentTooltipTarget = td;
-            showTooltip(e, row[i], regularDate, libreDate, true);
-        }
-    });
+                                e.preventDefault();
+                                e.stopPropagation();
+                                const tooltip = document.getElementById('tooltip');
+                                if (tooltip && tooltip.classList.contains('show') && currentTooltipTarget === td) {
+                                    hideTooltip();
+                                } else {
+                                    currentTooltipTarget = td;
+                                    showTooltip(e, row[i], regularDate, libreDate, true);
+                                }
+                            });
                         } else {
                             // Para desktop/mouse
                             td.addEventListener('mouseenter', (e) => {
