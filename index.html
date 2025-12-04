@@ -914,7 +914,7 @@ const isAnulada = fechaValue.includes('ANULADA') || horaValue.includes('ANULADA'
 if (isAnulada) {
     tr.classList.add('cancelled-row');
     console.log(`Applied cancelled-row class to row ${index + 6}`);
-} // Verificar si la fila está anulada
+// Verificar si la fila está anulada
 const fechaValue = (row[1] || '').toString().toUpperCase();
 const horaValue = (row[2] || '').toString().toUpperCase();
 const aulaValue = (row[3] || '').toString().toUpperCase();
