@@ -683,7 +683,7 @@
                     // Para móviles: centrar sobre la celda de fecha
                     const rect = event.currentTarget.getBoundingClientRect();
                     left = rect.left + (rect.width / 2) - 140; // Centrar tooltip (280px / 2)
-                    top = rect.top + window.pageYOffset - 50; // 50px arriba de la celda
+                    top = rect.top + window.pageYOffset - 120; // 50px arriba de la celda
                     
                     // Ajustar si sale de pantalla
                     if (left < 10) left = 10;
@@ -711,7 +711,7 @@
             if (tooltip.classList.contains('show') && currentTooltipTarget === event.currentTarget) {
                 // Solo actualizar posición en desktop cuando se mueva el mouse
                 let left = event.clientX - 140;
-                let top = event.clientY + window.pageYOffset - 50;
+                let top = event.clientY + window.pageYOffset - 120;
                 
                 // Ajustar si sale de pantalla
                 if (left < 10) left = 10;
