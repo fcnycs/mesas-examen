@@ -128,6 +128,42 @@
             font-weight: 600;
         }
 
+        /* ── Clear filters button ── */
+        .clear-col-filters-btn {
+            display: none;
+            align-items: center;
+            gap: 6px;
+            background: #fff3cd;
+            border: 1.5px solid #f0a500;
+            border-radius: 20px;
+            padding: 8px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #856404;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .clear-col-filters-btn:hover {
+            background: #ffeeba;
+            border-color: #e09000;
+        }
+        .clear-col-filters-btn.visible {
+            display: flex;
+        }
+        .active-filter-badge {
+            background: #f0a500;
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
         .loading {
             text-align: center;
             padding: 50px;
@@ -152,6 +188,57 @@
             border-collapse: collapse;
             margin-top: 20px;
             background: white;
+        }
+
+        /* ── Sortable column headers ── */
+        .exam-table th.sort-header {
+            cursor: pointer;
+            user-select: none;
+            white-space: nowrap;
+            transition: background 0.15s;
+        }
+        .exam-table th.sort-header:hover {
+            background: #9f9fe8;
+        }
+        .sort-arrow {
+            margin-left: 6px;
+            font-size: 11px;
+            color: rgba(30, 30, 100, 0.4);
+            font-weight: normal;
+        }
+        .sort-arrow.active {
+            color: #1a1a6e;
+            opacity: 1;
+            font-weight: bold;
+        }
+
+        /* ── Filter row ── */
+        .exam-table th.filter-cell {
+            background: #ddddf9 !important;
+            padding: 5px 8px !important;
+            font-weight: normal;
+        }
+        .filter-select {
+            width: 100%;
+            font-size: 12px;
+            border: 1.5px solid #aaaadc;
+            border-radius: 5px;
+            padding: 4px 6px;
+            background: white;
+            cursor: pointer;
+            color: #333;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .filter-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.25);
+        }
+        .filter-select.filter-active {
+            background: #fff8e1;
+            border-color: #f0a500;
+            font-weight: 600;
+            color: #5a3e00;
         }
 
         .title-section .main-title {
@@ -235,6 +322,14 @@
 
         .exam-table tr.cancelled-row:hover {
             background-color: #f5d0d0 !important;
+        }
+
+        /* No results inside tbody */
+        .exam-table td.no-results-cell {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-style: italic;
         }
 
         .title-section {
@@ -415,6 +510,10 @@
                 justify-content: center;
             }
 
+            .clear-col-filters-btn {
+                justify-content: center;
+            }
+
             .table-container {
                 padding: 0 20px 20px;
             }
@@ -449,6 +548,11 @@
                 min-width: 260px;
                 font-size: 12px;
                 padding: 10px 14px;
+            }
+
+            .filter-select {
+                font-size: 11px;
+                padding: 3px 4px;
             }
         }
 
@@ -495,30 +599,31 @@
 <body>
     <div class="container">
         <div class="header">
-            <!-- Logo de la Universidad -->
             <img class="university-logo" src="https://fcnycs.github.io/mesas-examen/logo_s.png" alt="Universidad Nacional de la Patagonia San Juan Bosco">
-            
-            <!-- Título del logo -->
             <div class="logo-title">UNPSJB</div>
-            
             <div class="header-content">
                 <h1>FACULTAD DE CIENCIAS NATURALES Y CIENCIAS DE LA SALUD</h1>
                 <p>📚 MESAS DE EXAMEN FINAL</p>
             </div>
         </div>
-        
+
         <div id="titleSection" style="display: none;"></div>
         <div class="info-banner">ℹ️ <strong>EXAMEN REGULAR:</strong> Por SIU Guaraní hasta <span style="font-weight: bold !important;">2 días</span> hábiles previos</div>
         <div class="info-banner">ℹ️ <strong>EXAMEN LIBRE:</strong> Por nota en Facultad con firma docente, hasta <span style="font-weight: bold !important;">5 días</span> hábiles previos</div>
         <div class="info-banner">⚠️ <strong>Los días hábiles NO incluyen:</strong> feriados, fines de semana, día del examen y día de inscripción</div>
         <div class="info-banner">💡 <strong>Tip:</strong> Pasa el mouse sobre la fecha del examen para ver las fechas límite de inscripción</div>
-        
+
         <div class="search-container">
             <input type="text" id="searchInput" class="search-box" placeholder="🔍 Buscar por materia, fecha...">
             <div class="filter-container">
                 <input type="checkbox" id="hidePastExams" class="filter-checkbox">
                 <label for="hidePastExams" class="filter-label">Ocultar mesas finalizadas</label>
             </div>
+            <!-- Clear column filters button (visible only when filters are active) -->
+            <button id="clearColFiltersBtn" class="clear-col-filters-btn" onclick="clearColumnFilters()">
+                <span id="activeFiltersBadge" class="active-filter-badge">0</span>
+                Limpiar filtros de columna
+            </button>
         </div>
 
         <div id="loadingMessage" class="loading">
@@ -533,11 +638,14 @@
             <table id="examTable" class="exam-table" style="display: none;">
                 <thead>
                     <tr id="tableHeader">
-                        <!-- Headers will be populated by JavaScript -->
+                        <!-- Sort headers populated by JS -->
+                    </tr>
+                    <tr id="filterRow">
+                        <!-- Filter dropdowns populated by JS -->
                     </tr>
                 </thead>
                 <tbody id="tableBody">
-                    <!-- Data will be populated by JavaScript -->
+                    <!-- Data populated by JS -->
                 </tbody>
             </table>
             <div id="noResults" class="no-results" style="display: none;">
@@ -546,162 +654,170 @@
         </div>
     </div>
 
-    <!-- Tooltip container -->
     <div id="tooltip" class="tooltip"></div>
 
     <script>
-        let allData = [];
+        // ── State ──────────────────────────────────────────────────────────────
+        let allData      = [];
         let filteredData = [];
-        let titleData = {};
+        let titleData    = {};
         let hidePastExams = false;
         let currentTooltipTarget = null;
 
-        // URL de tu Google Sheet incluyendo las columnas G y H con las fechas límite
+        // Sort state
+        let sortColumn    = null;   // null or 0-3
+        let sortDirection = 'asc';  // 'asc' | 'desc'
+
+        // Column filter state  (key = column index as string, value = selected option)
+        let columnFilters = { '0': '', '1': '', '2': '', '3': '' };
+
         const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQVNeNi7qQE2PotMhuWitzIh9y8M0oFLPC3ng7blHdDLScjzpx9WQPmXan6tL-d11hfQqTYW0SHamnp/pub?gid=0&single=true&output=csv&range=A:H';
 
+        // ── Date helpers ───────────────────────────────────────────────────────
         function parseDate(dateString) {
             if (!dateString || dateString.trim() === '') return null;
-            
             const cleanDate = dateString.trim().replace(/\s+/g, ' ');
-            
-            // Try different date formats more specifically
             const formats = [
-                // DD/MM/YYYY
                 /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/,
-                // DD/MM/YY
                 /^(\d{1,2})\/(\d{1,2})\/(\d{2})$/,
-                // DD-MM-YYYY
                 /^(\d{1,2})-(\d{1,2})-(\d{4})$/,
-                // DD-MM-YY  
                 /^(\d{1,2})-(\d{1,2})-(\d{2})$/,
-                // DD.MM.YYYY
                 /^(\d{1,2})\.(\d{1,2})\.(\d{4})$/,
-                // DD.MM.YY
                 /^(\d{1,2})\.(\d{1,2})\.(\d{2})$/,
-                // YYYY/MM/DD
                 /^(\d{4})\/(\d{1,2})\/(\d{1,2})$/,
-                // YYYY-MM-DD
                 /^(\d{4})-(\d{1,2})-(\d{1,2})$/
             ];
-            
             for (let i = 0; i < formats.length; i++) {
-                const format = formats[i];
-                const match = cleanDate.match(format);
+                const match = cleanDate.match(formats[i]);
                 if (match) {
                     let day, month, year;
-                    
-                    if (i >= 6) { // YYYY first formats
-                        year = parseInt(match[1]);
-                        month = parseInt(match[2]);
-                        day = parseInt(match[3]);
-                    } else { // DD first formats
-                        day = parseInt(match[1]);
-                        month = parseInt(match[2]);
-                        year = parseInt(match[3]);
-                        
-                        // Handle 2-digit years
-                        if (year < 100) {
-                            year += year < 50 ? 2000 : 1900;
-                        }
+                    if (i >= 6) { year = +match[1]; month = +match[2]; day = +match[3]; }
+                    else {
+                        day = +match[1]; month = +match[2]; year = +match[3];
+                        if (year < 100) year += year < 50 ? 2000 : 1900;
                     }
-                    
-                    const parsedDate = new Date(year, month - 1, day);
-                    return parsedDate;
+                    return new Date(year, month - 1, day);
                 }
             }
-            
-            // Try native Date parsing as fallback
-            const nativeDate = new Date(cleanDate);
-            if (!isNaN(nativeDate.getTime())) {
-                return nativeDate;
-            }
-            
-            return null;
+            const native = new Date(cleanDate);
+            return isNaN(native.getTime()) ? null : native;
         }
 
         function isDatePast(dateString) {
             const date = parseDate(dateString);
             if (!date) return false;
-            
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            date.setHours(0, 0, 0, 0);
-            
+            const today = new Date(); today.setHours(0,0,0,0);
+            date.setHours(0,0,0,0);
             return date < today;
         }
 
+        function isDateToday(dateString) {
+            const date = parseDate(dateString);
+            if (!date) return false;
+            const today = new Date(); today.setHours(0,0,0,0);
+            date.setHours(0,0,0,0);
+            return date.getTime() === today.getTime();
+        }
+
+        // ── Sort helpers ───────────────────────────────────────────────────────
+        function applySort(data) {
+            if (sortColumn === null) return [...data];
+            return [...data].sort((a, b) => {
+                const valA = a[sortColumn] ? a[sortColumn].toString().trim() : '';
+                const valB = b[sortColumn] ? b[sortColumn].toString().trim() : '';
+                let cmp = 0;
+                if (sortColumn === 1) {
+                    // Date column — sort by actual date value
+                    const da = parseDate(valA), db = parseDate(valB);
+                    if (da && db) cmp = da - db;
+                    else if (da) cmp = -1;
+                    else if (db) cmp = 1;
+                    else cmp = valA.localeCompare(valB, 'es');
+                } else {
+                    cmp = valA.localeCompare(valB, 'es', { numeric: true });
+                }
+                return sortDirection === 'asc' ? cmp : -cmp;
+            });
+        }
+
+        // ── Column filter helpers ──────────────────────────────────────────────
+        function getUniqueValues(colIndex) {
+            const data = titleData.tableData || [];
+            const seen = new Set();
+            data.forEach(row => {
+                const val = row[colIndex] ? row[colIndex].toString().trim() : '';
+                if (val) seen.add(val);
+            });
+            const arr = [...seen];
+            if (colIndex === 1) {
+                arr.sort((a, b) => {
+                    const da = parseDate(a), db = parseDate(b);
+                    if (da && db) return da - db;
+                    return a.localeCompare(b, 'es');
+                });
+            } else {
+                arr.sort((a, b) => a.localeCompare(b, 'es', { numeric: true }));
+            }
+            return arr;
+        }
+
+        function countActiveColumnFilters() {
+            return Object.values(columnFilters).filter(v => v !== '').length;
+        }
+
+        function updateClearFiltersButton() {
+            const count = countActiveColumnFilters();
+            const btn   = document.getElementById('clearColFiltersBtn');
+            const badge = document.getElementById('activeFiltersBadge');
+            badge.textContent = count;
+            if (count > 0) {
+                btn.classList.add('visible');
+            } else {
+                btn.classList.remove('visible');
+            }
+        }
+
+        function clearColumnFilters() {
+            columnFilters = { '0': '', '1': '', '2': '', '3': '' };
+            filterData();   // re-render (will also rebuild selects with reset values)
+        }
+
+        // ── Tooltip ────────────────────────────────────────────────────────────
         function showTooltip(event, examDate, regularDate, libreDate, isMobile = false) {
             const tooltip = document.getElementById('tooltip');
-            
-            if (!examDate || examDate.trim() === '') {
-                tooltip.classList.remove('show');
-                return;
-            }
+            if (!examDate || examDate.trim() === '') { tooltip.classList.remove('show'); return; }
 
             let content = `<div class="tooltip-title">📅 Fechas límite de inscripción</div>`;
-            
-            // Usar las fechas que vienen del Google Sheet
             if (regularDate && regularDate.trim() !== '') {
-                content += `
-                    <div class="tooltip-item">
-                        <span class="tooltip-label">📝 Examen Regular:</span>
-                        <span class="tooltip-date regular">${regularDate}</span>
-                    </div>
-                `;
+                content += `<div class="tooltip-item"><span class="tooltip-label">📝 Examen Regular:</span><span class="tooltip-date regular">${regularDate}</span></div>`;
             } else {
-                content += `
-                    <div class="tooltip-item">
-                        <span class="tooltip-label">📝 Examen Regular:</span>
-                        <span class="tooltip-date">No calculado</span>
-                    </div>
-                `;
+                content += `<div class="tooltip-item"><span class="tooltip-label">📝 Examen Regular:</span><span class="tooltip-date">No calculado</span></div>`;
             }
-
             if (libreDate && libreDate.trim() !== '') {
-                content += `
-                    <div class="tooltip-item">
-                        <span class="tooltip-label">📋 Examen Libre:</span>
-                        <span class="tooltip-date libre">${libreDate}</span>
-                    </div>
-                `;
+                content += `<div class="tooltip-item"><span class="tooltip-label">📋 Examen Libre:</span><span class="tooltip-date libre">${libreDate}</span></div>`;
             } else {
-                content += `
-                    <div class="tooltip-item">
-                        <span class="tooltip-label">📋 Examen Libre:</span>
-                        <span class="tooltip-date">No calculado</span>
-                    </div>
-                `;
+                content += `<div class="tooltip-item"><span class="tooltip-label">📋 Examen Libre:</span><span class="tooltip-date">No calculado</span></div>`;
             }
-
             tooltip.innerHTML = content;
 
-            // Posicionar el tooltip
             setTimeout(() => {
                 let left, top;
-                
                 if (isMobile) {
-                    // Para móviles: centrar sobre la celda de fecha
                     const rect = event.currentTarget.getBoundingClientRect();
-                    left = rect.left + (rect.width / 2) - 140; // Centrar tooltip (280px / 2)
-                    top = rect.top + window.pageYOffset - 120; // 50px arriba de la celda
-                    
-                    // Ajustar si sale de pantalla
+                    left = rect.left + rect.width / 2 - 140;
+                    top  = rect.top + window.pageYOffset - 120;
                     if (left < 10) left = 10;
                     if (left + 280 > window.innerWidth - 10) left = window.innerWidth - 290;
                     if (top < window.pageYOffset + 10) top = rect.bottom + window.pageYOffset + 10;
                 } else {
-                    // Para desktop: cerca del cursor del mouse
-                    left = event.clientX - 140; // Centrar horizontalmente en el cursor
-                    top = event.clientY + window.pageYOffset - 120; // 50px arriba del cursor
-                    
-                    // Ajustar si sale de pantalla
+                    left = event.clientX - 140;
+                    top  = event.clientY + window.pageYOffset - 120;
                     if (left < 10) left = 10;
                     if (left + 280 > window.innerWidth - 10) left = window.innerWidth - 290;
                     if (top < window.pageYOffset + 10) top = event.clientY + window.pageYOffset + 20;
                 }
-
                 tooltip.style.left = left + 'px';
-                tooltip.style.top = top + 'px';
+                tooltip.style.top  = top  + 'px';
                 tooltip.classList.add('show');
             }, 10);
         }
@@ -709,97 +825,68 @@
         function updateTooltipPosition(event) {
             const tooltip = document.getElementById('tooltip');
             if (tooltip.classList.contains('show') && currentTooltipTarget === event.currentTarget) {
-                // Solo actualizar posición en desktop cuando se mueva el mouse
                 let left = event.clientX - 140;
-                let top = event.clientY + window.pageYOffset - 120;
-                
-                // Ajustar si sale de pantalla
+                let top  = event.clientY + window.pageYOffset - 120;
                 if (left < 10) left = 10;
                 if (left + 280 > window.innerWidth - 10) left = window.innerWidth - 290;
                 if (top < window.pageYOffset + 10) top = event.clientY + window.pageYOffset + 20;
-
                 tooltip.style.left = left + 'px';
-                tooltip.style.top = top + 'px';
+                tooltip.style.top  = top  + 'px';
             }
         }
 
         function hideTooltip() {
-            const tooltip = document.getElementById('tooltip');
-            tooltip.classList.remove('show');
+            document.getElementById('tooltip').classList.remove('show');
             currentTooltipTarget = null;
         }
 
-        // Detectar si es dispositivo táctil
         function isTouchDevice() {
             return (('ontouchstart' in window) ||
                     (navigator.maxTouchPoints > 0) ||
                     (navigator.msMaxTouchPoints > 0) ||
-           /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+                    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
         }
 
+        // ── Data loading ───────────────────────────────────────────────────────
         async function loadData() {
             try {
-                console.log('Intentando cargar datos desde:', SHEET_URL);
-                
                 const response = await fetch(SHEET_URL);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
                 const csvText = await response.text();
-                console.log('CSV cargado, primeros 200 caracteres:', csvText.substring(0, 200));
-                
                 const rows = csvText.split('\n');
                 const data = rows.map(row => {
-                    // Simple CSV parsing - handles basic cases
                     const columns = [];
                     let currentColumn = '';
                     let inQuotes = false;
-                    
                     for (let i = 0; i < row.length; i++) {
                         const char = row[i];
-                        if (char === '"' && (i === 0 || row[i-1] === ',')) {
-                            inQuotes = true;
-                        } else if (char === '"' && inQuotes && (i === row.length - 1 || row[i+1] === ',')) {
-                            inQuotes = false;
-                        } else if (char === ',' && !inQuotes) {
-                            columns.push(currentColumn.trim());
-                            currentColumn = '';
-                        } else {
-                            currentColumn += char;
-                        }
+                        if (char === '"' && (i === 0 || row[i-1] === ',')) { inQuotes = true; }
+                        else if (char === '"' && inQuotes && (i === row.length - 1 || row[i+1] === ',')) { inQuotes = false; }
+                        else if (char === ',' && !inQuotes) { columns.push(currentColumn.trim()); currentColumn = ''; }
+                        else { currentColumn += char; }
                     }
                     columns.push(currentColumn.trim());
-                    
                     return columns;
                 });
 
-                // Filter out completely empty rows
                 allData = data.filter(row => row.some(cell => cell && cell.trim() !== ''));
-                
-                console.log('Loaded data rows:', allData.length);
-                console.log('Sample rows:', allData.slice(0, 10));
-                
-                // Extract title information
+
                 if (allData.length >= 5) {
-                    // Check if row 4 (index 3) is empty and provide default text
-                    row4Content = allData[3] && allData[3][0] ? allData[3][0] : "NINGUNO";
-                    
+                    const row4Content = allData[3] && allData[3][0] ? allData[3][0] : "NINGUNO";
                     titleData = {
-                        titleA1: allData[0] ? allData[0][0] : '',
-                        titleBCD1: allData[0] ? (allData[0][1] + ' ' + (allData[0][2] || '') + ' ' + (allData[0][3] || '')).trim() : '',
-                        infoA2: allData[1] ? allData[1][0] : '',
-                        infoBCD2: allData[1] ? (allData[1][1] + ' ' + (allData[1][2] || '') + ' ' + (allData[1][3] || '')).trim() : '',
-                        titleABCD3: allData[2] ? (allData[2][0] + ' ' + (allData[2][1] || '') + ' ' + (allData[2][2] || '') + ' ' + (allData[2][3] || '')).trim() : '',
-                        infoABCD4: row4Content.toUpperCase(),
-                        headers: ['ASIGNATURAS', 'FECHA', 'HORA', 'AULA'],
-                        tableData: allData.slice(5) // From row 6 onwards (index 5)
+                        titleA1:     allData[0] ? allData[0][0] : '',
+                        titleBCD1:   allData[0] ? (allData[0][1] + ' ' + (allData[0][2] || '') + ' ' + (allData[0][3] || '')).trim() : '',
+                        infoA2:      allData[1] ? allData[1][0] : '',
+                        infoBCD2:    allData[1] ? (allData[1][1] + ' ' + (allData[1][2] || '') + ' ' + (allData[1][3] || '')).trim() : '',
+                        titleABCD3:  allData[2] ? (allData[2][0] + ' ' + (allData[2][1] || '') + ' ' + (allData[2][2] || '') + ' ' + (allData[2][3] || '')).trim() : '',
+                        infoABCD4:   row4Content.toUpperCase(),
+                        headers:     ['ASIGNATURAS', 'FECHA', 'HORA', 'AULA'],
+                        tableData:   allData.slice(5)
                     };
                 }
-                
-                filteredData = titleData.tableData || [];
 
+                filteredData = titleData.tableData || [];
                 displayTitles();
                 displayData();
                 document.getElementById('loadingMessage').style.display = 'none';
@@ -807,11 +894,8 @@
 
             } catch (error) {
                 console.error('Error loading data:', error);
-                console.error('Error details:', error.message);
                 document.getElementById('loadingMessage').style.display = 'none';
                 document.getElementById('errorMessage').style.display = 'block';
-                
-                // Show more specific error message
                 document.getElementById('errorMessage').innerHTML = `
                     ❌ Error al cargar los datos: ${error.message}<br>
                     <small>Verifica que tu Google Sheet esté publicado públicamente. <a href="#" onclick="location.reload()">Reintentar</a></small>
@@ -819,133 +903,172 @@
             }
         }
 
+        // ── Title display (unchanged) ──────────────────────────────────────────
         function displayTitles() {
             const titleSection = document.getElementById('titleSection');
-            
             if (titleData.titleA1 || titleData.titleBCD1) {
                 titleSection.style.display = 'block';
-                
-                // Process title and info for column A
-                const titleA1Content = titleData.titleA1 ? 
-                    `<div class="title-text">${titleData.titleA1}</div>
-                     <div class="title-info">${(titleData.infoA2 || '').toUpperCase()}</div>` : '';
-                
-                // Process title and info for columns BCD
-                const titleBCDContent = titleData.titleBCD1 ? 
-                    `<div class="title-text">${titleData.titleBCD1}</div>
-                     <div class="title-info">${(titleData.infoBCD2 || '').toUpperCase()}</div>` : '';
-                
-                // Check if general info is empty and provide default message
+                const titleA1Content = titleData.titleA1 ?
+                    `<div class="title-text">${titleData.titleA1}</div><div class="title-info">${(titleData.infoA2 || '').toUpperCase()}</div>` : '';
+                const titleBCDContent = titleData.titleBCD1 ?
+                    `<div class="title-text">${titleData.titleBCD1}</div><div class="title-info">${(titleData.infoBCD2 || '').toUpperCase()}</div>` : '';
                 let generalInfoContent = '';
                 if (titleData.titleABCD3 && titleData.titleABCD3.trim() !== '') {
-                    const infoText = titleData.infoABCD4 && titleData.infoABCD4.trim() !== '' ? 
+                    const infoText = titleData.infoABCD4 && titleData.infoABCD4.trim() !== '' ?
                         titleData.infoABCD4 : 'No hay información disponible';
-                    
                     generalInfoContent = `
                         <div class="general-info">
                             <div class="general-info-title">${titleData.titleABCD3}</div>
                             <div class="general-info-content">${infoText}</div>
-                        </div>
-                    `;
+                        </div>`;
                 }
-                
                 titleSection.innerHTML = `
                     <div class="title-section">
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
-                            <div class="main-title">
-                                ${titleA1Content}
-                            </div>
-                            <div class="main-title">
-                                ${titleBCDContent}
-                            </div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+                            <div class="main-title">${titleA1Content}</div>
+                            <div class="main-title">${titleBCDContent}</div>
                         </div>
-                        
                         ${generalInfoContent}
-                    </div>
-                `;
+                    </div>`;
             }
         }
 
+        // ── Main display function ──────────────────────────────────────────────
         function displayData() {
             const tableHeader = document.getElementById('tableHeader');
-            const tableBody = document.getElementById('tableBody');
+            const filterRow   = document.getElementById('filterRow');
+            const tableBody   = document.getElementById('tableBody');
 
-            // Clear existing content
             tableHeader.innerHTML = '';
-            tableBody.innerHTML = '';
+            filterRow.innerHTML   = '';
+            tableBody.innerHTML   = '';
 
-            if (filteredData.length === 0) {
-                document.getElementById('examTable').style.display = 'none';
-                document.getElementById('noResults').style.display = 'block';
-                return;
-            }
-
-            document.getElementById('examTable').style.display = 'table';
             document.getElementById('noResults').style.display = 'none';
+            document.getElementById('examTable').style.display = 'table';
 
-            // Create headers using the data from row 5
             const headers = titleData.headers || ['Asignaturas', 'Fecha', 'Hora', 'Aula'];
 
-            headers.forEach(header => {
+            // ── Sort header row ────────────────────────────────────────────────
+            headers.forEach((header, i) => {
                 const th = document.createElement('th');
-                th.textContent = header || '';
+                th.className = 'sort-header';
+                th.title = 'Clic para ordenar';
+
+                const isSorted = sortColumn === i;
+                const arrowClass = isSorted ? 'sort-arrow active' : 'sort-arrow';
+                let arrowChar;
+                if (!isSorted)            arrowChar = '⇅';
+                else if (sortDirection === 'asc')  arrowChar = '▲';
+                else                               arrowChar = '▼';
+
+                th.innerHTML = `${header || ''}<span class="${arrowClass}">${arrowChar}</span>`;
+
+                th.addEventListener('click', () => {
+                    if (sortColumn === i) {
+                        sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        sortColumn = i;
+                        sortDirection = 'asc';
+                    }
+                    filterData();
+                });
+
                 tableHeader.appendChild(th);
             });
 
-            // Create data rows (from row 6 onwards)
-            let activeRowIndex = 0;
-            
-            filteredData.forEach((row, index) => {
-                const tr = document.createElement('tr');
-                
-                // Get date from column B (index 1) for conditional formatting
-                const dateValue = row[1] ? row[1].toString().trim() : '';
-                console.log(`Row ${index + 6}: Date value: "${dateValue}"`);
-                
-                const isPast = isDatePast(dateValue);
-                console.log(`Row ${index + 6}: Is past: ${isPast}`);
+            // ── Filter dropdown row ────────────────────────────────────────────
+            headers.forEach((header, i) => {
+                const th = document.createElement('th');
+                th.className = 'filter-cell';
 
-                // Verificar si la fila está anulada
-                const fechaValue = (row[1] || '').toString().toUpperCase();
-                const horaValue = (row[2] || '').toString().toUpperCase();
-                const aulaValue = (row[3] || '').toString().toUpperCase();
-                const isAnulada = fechaValue.includes('ANULADA') || horaValue.includes('ANULADA') || aulaValue.includes('ANULADA');
+                const hasFilter = columnFilters[i] && columnFilters[i] !== '';
+                const select = document.createElement('select');
+                select.className = 'filter-select' + (hasFilter ? ' filter-active' : '');
+                select.title = `Filtrar por ${header}`;
+
+                // Default "all" option
+                const defaultOpt = document.createElement('option');
+                defaultOpt.value = '';
+                defaultOpt.textContent = `— Todas —`;
+                select.appendChild(defaultOpt);
+
+                // "Hoy" shortcut for date column
+                if (i === 1) {
+                    const todayOpt = document.createElement('option');
+                    todayOpt.value = '__today__';
+                    todayOpt.textContent = '📅 Hoy';
+                    select.appendChild(todayOpt);
+                }
+
+                // Unique values from full dataset
+                getUniqueValues(i).forEach(val => {
+                    const opt = document.createElement('option');
+                    opt.value = val;
+                    opt.textContent = val;
+                    select.appendChild(opt);
+                });
+
+                // Restore saved selection
+                select.value = columnFilters[i] || '';
+
+                select.addEventListener('change', () => {
+                    columnFilters[i] = select.value;
+                    filterData();
+                });
+
+                th.appendChild(select);
+                filterRow.appendChild(th);
+            });
+
+            // ── Apply sort ─────────────────────────────────────────────────────
+            const sortedData = applySort(filteredData);
+
+            // ── Render data rows ───────────────────────────────────────────────
+            if (sortedData.length === 0) {
+                const tr = document.createElement('tr');
+                const td = document.createElement('td');
+                td.colSpan = headers.length;
+                td.className = 'no-results-cell';
+                td.textContent = '🔍 No se encontraron resultados para los filtros aplicados';
+                tr.appendChild(td);
+                tableBody.appendChild(tr);
+                return;
+            }
+
+            let activeRowIndex = 0;
+            sortedData.forEach((row) => {
+                const tr = document.createElement('tr');
+
+                const dateValue  = row[1] ? row[1].toString().trim() : '';
+                const isPast     = isDatePast(dateValue);
+                const fechaVal   = (row[1] || '').toString().toUpperCase();
+                const horaVal    = (row[2] || '').toString().toUpperCase();
+                const aulaVal    = (row[3] || '').toString().toUpperCase();
+                const isAnulada  = fechaVal.includes('ANULADA') || horaVal.includes('ANULADA') || aulaVal.includes('ANULADA');
 
                 if (isAnulada) {
                     tr.classList.add('cancelled-row');
                 } else if (isPast) {
                     tr.classList.add('past-date');
-                    console.log(`Applied past-date class to row ${index + 6}`);
                 } else {
-                    // Apply alternating colors only to active rows
-                    if (activeRowIndex % 2 === 0) {
-                        tr.classList.add('active-even');
-                    } else {
-                        tr.classList.add('active-odd');
-                    }
+                    tr.classList.add(activeRowIndex % 2 === 0 ? 'active-even' : 'active-odd');
                     activeRowIndex++;
                 }
-                
-                // Create cells for each column
+
                 headers.forEach((header, i) => {
                     const td = document.createElement('td');
                     td.textContent = row[i] || '';
-                    
-                    // Add special handling for date column (assuming it's column index 1)
+
                     if (i === 1 && row[i] && row[i].trim() !== '') {
                         td.classList.add('date-cell');
-                        
-                        // Obtener las fechas límite de las columnas G (índice 6) y H (índice 7)
-                        const regularDate = row[6] || ''; // Columna G
-                        const libreDate = row[7] || '';   // Columna H
-                        
+                        const regularDate = row[6] || '';
+                        const libreDate   = row[7] || '';
+
                         if (isTouchDevice()) {
-                            // Para dispositivos táctiles
                             td.addEventListener('touchstart', (e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                const tooltip = document.getElementById('tooltip');
-                                if (tooltip && tooltip.classList.contains('show') && currentTooltipTarget === td) {
+                                e.preventDefault(); e.stopPropagation();
+                                const t = document.getElementById('tooltip');
+                                if (t && t.classList.contains('show') && currentTooltipTarget === td) {
                                     hideTooltip();
                                 } else {
                                     currentTooltipTarget = td;
@@ -953,84 +1076,82 @@
                                 }
                             });
                         } else {
-                            // Para desktop/mouse
                             td.addEventListener('mouseenter', (e) => {
                                 currentTooltipTarget = td;
                                 showTooltip(e, row[i], regularDate, libreDate, false);
                             });
-                            
                             td.addEventListener('mousemove', updateTooltipPosition);
-                            
                             td.addEventListener('mouseleave', hideTooltip);
                         }
                     }
-                    
+
                     tr.appendChild(td);
                 });
-                
+
                 tableBody.appendChild(tr);
             });
         }
 
+        // ── Filter logic ───────────────────────────────────────────────────────
         function filterData() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
-            hidePastExams = document.getElementById('hidePastExams').checked;
-            
+            const searchTerm  = document.getElementById('searchInput').value.toLowerCase().trim();
+            hidePastExams     = document.getElementById('hidePastExams').checked;
+
             let data = titleData.tableData || [];
-            
-            // Filtrar por término de búsqueda
+
+            // Text search
             if (searchTerm !== '') {
-                data = data.filter(row => 
-                    row.some(cell => 
-                        cell && cell.toString().toLowerCase().includes(searchTerm)
-                    )
+                data = data.filter(row =>
+                    row.some(cell => cell && cell.toString().toLowerCase().includes(searchTerm))
                 );
             }
-            
-            // Filtrar mesas finalizadas si está marcado el checkbox
+
+            // Hide past exams
             if (hidePastExams) {
                 data = data.filter(row => {
-                    const dateValue = row[1] ? row[1].toString().trim() : '';
-                    return !isDatePast(dateValue);
+                    const d = row[1] ? row[1].toString().trim() : '';
+                    return !isDatePast(d);
                 });
             }
-            
+
+            // Column filters
+            Object.keys(columnFilters).forEach(colKey => {
+                const filterVal = columnFilters[colKey];
+                if (!filterVal) return;
+
+                const idx = parseInt(colKey);
+
+                if (filterVal === '__today__') {
+                    // Special "today" filter — only applies to date column
+                    data = data.filter(row => isDateToday(row[1] ? row[1].toString().trim() : ''));
+                } else {
+                    data = data.filter(row => {
+                        const val = row[idx] ? row[idx].toString().trim() : '';
+                        return val === filterVal;
+                    });
+                }
+            });
+
             filteredData = data;
+            updateClearFiltersButton();
             displayData();
         }
 
-        // Hide tooltip when clicking outside
+        // ── Event listeners ────────────────────────────────────────────────────
         document.addEventListener('click', (e) => {
-            const tooltip = document.getElementById('tooltip');
-            if (!e.target.classList.contains('date-cell') && tooltip.classList.contains('show')) {
-                hideTooltip();
-            }
+            const t = document.getElementById('tooltip');
+            if (!e.target.classList.contains('date-cell') && t.classList.contains('show')) hideTooltip();
         });
 
-        // Hide tooltip when scrolling (solo para móviles ya que en desktop se reposiciona)
         window.addEventListener('scroll', () => {
-            if (isTouchDevice()) {
-                hideTooltip();
-            }
+            if (isTouchDevice()) hideTooltip();
         });
-        
-        // Event listeners
+
         document.getElementById('searchInput').addEventListener('input', filterData);
         document.getElementById('hidePastExams').addEventListener('change', filterData);
 
-        // Load data when page loads
         window.addEventListener('load', loadData);
-
-        // Auto-refresh every 2 minutes to get updates
         setInterval(loadData, 2 * 60 * 1000);
-
-        // Test functions for debugging
-        window.testDateParsing = function(dateStr) {
-            console.log('Testing date:', dateStr);
-            const parsed = parseDate(dateStr);
-            console.log('Parsed:', parsed);
-            console.log('Is past:', isDatePast(dateStr));
-        };
     </script>
 </body>
 </html>
